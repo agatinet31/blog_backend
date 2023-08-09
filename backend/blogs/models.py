@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db import models
-# from django.utils import timezone
+from django.db.models.functions import Lower
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 User = get_user_model()
@@ -32,3 +33,46 @@ class Blog(models.Model):
     def __str__(self):
         """Возвращает информацию по блогу пользователя."""
         return f"Блог {self.name} (пользователь - {self.user})"
+
+
+class Post(models.Model):
+    """Модель поста в блоге."""
+
+    title = models.CharField(
+        _("title"),
+        max_length=100,
+        default=_("title"),
+        help_text=_("Required. Enter name title, please."),
+    )
+    text = models.CharField(
+        _("text"),
+        max_length=140,
+        blank=True,
+    )
+    date_create = models.DateTimeField(
+        _("date create"), default=timezone.now, db_index=True
+    )
+    blog = models.ForeignKey(
+        Blog,
+        on_delete=models.CASCADE,
+        related_name=_("posts"),
+        verbose_name=_("blog"),
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                Lower("title"),
+                "blog",
+                name="%(app_label)s_%(class)s_title_blog",
+                violation_error_message=_(
+                    "The title post must be unique in blog!"
+                ),
+            )
+        ]
+        verbose_name = _("Post")
+        verbose_name_plural = _("Posts")
+
+    def __str__(self):
+        """Возвращает информацию по посту."""
+        return f"{self.name} (дата публикации - {self.user})"

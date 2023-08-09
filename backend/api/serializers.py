@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
-# from django.core.exceptions import ValidationError as DjangoValidationError
-from django.db import transaction
+from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db import IntegrityError, transaction
 # from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from djoser.conf import settings
@@ -11,10 +11,16 @@ from djoser.serializers import (
 )
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
-# from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError
 
+from api.fields import (
+    CurrentBlogDefault,
+    # LookupBlogRelatedField,
+    # PrimaryKey404RelatedField,
+)
 from blogs.models import (
     Blog,
+    Post,
 )
 
 User = get_user_model()
@@ -72,3 +78,28 @@ class CustomTokenSerializer(TokenSerializer):
             "last_name",
             "avatar",
         )
+
+
+class DefaultBlogDataSerializer(serializers.ModelSerializer):
+    """Базовый сериализатор данных блога."""
+
+    blog = serializers.HiddenField(default=CurrentBlogDefault())
+
+    def save(self, **kwargs):
+        try:
+            isinstance = super().save(**kwargs)
+            isinstance.full_clean()
+            return isinstance
+        except (IntegrityError, DjangoValidationError) as exc:
+            raise ValidationError(str(exc))
+
+
+class PostSerializer(DefaultBlogDataSerializer):
+    """Сериализатор поста в блоге."""
+
+    id = serializers.ReadOnlyField()
+    date_create = serializers.ReadOnlyField()
+
+    class Meta:
+        model = Post
+        fields = ["id", "title", "text", "blog", "date_create"]
