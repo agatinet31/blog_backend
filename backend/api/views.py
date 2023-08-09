@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+
 # from django.shortcuts import get_object_or_404
 # from drf_spectacular.utils import (
 #     OpenApiExample,
@@ -8,13 +9,8 @@ from django.contrib.auth import get_user_model
 from rest_framework import mixins, viewsets
 
 from api.permissions import IsAuthorBlog
-from api.serializers import (
-    PostSerializer,
-)
-from blogs.models import (
-    Post,
-)
-
+from api.serializers import PostSerializer
+from blogs.models import Post
 
 User = get_user_model()
 

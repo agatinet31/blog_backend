@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import IntegrityError, transaction
+
 # from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from djoser.conf import settings
@@ -13,15 +14,10 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from api.fields import (
+from api.fields import (  # LookupBlogRelatedField,; PrimaryKey404RelatedField,
     CurrentBlogDefault,
-    # LookupBlogRelatedField,
-    # PrimaryKey404RelatedField,
 )
-from blogs.models import (
-    Blog,
-    Post,
-)
+from blogs.models import Blog, Post
 
 User = get_user_model()
 

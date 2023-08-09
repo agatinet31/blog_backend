@@ -40,9 +40,7 @@ class LookupBlogRelatedField(serializers.RelatedField):
         "invalid": _("Invalid value."),
     }
 
-    def __init__(
-        self, blog=CurrentBlogDefault(), lookup_field=None, **kwargs
-    ):
+    def __init__(self, blog=CurrentBlogDefault(), lookup_field=None, **kwargs):
         assert (
             lookup_field is not None
         ), "The `lookup_field` argument is required."
@@ -62,9 +60,7 @@ class LookupBlogRelatedField(serializers.RelatedField):
         queryset = self.get_queryset()
         try:
             blog = self.get_blog()
-            return queryset.get(
-                **{"blog": blog.pk, self.lookup_field: data}
-            )
+            return queryset.get(**{"blog": blog.pk, self.lookup_field: data})
         except ObjectDoesNotExist:
             self.fail(
                 "does_not_exist", lookup_name=self.lookup_field, value=data
