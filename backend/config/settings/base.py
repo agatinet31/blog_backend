@@ -35,6 +35,8 @@ INSTALLED_APPS = [
     "corsheaders",
     "colorfield",
     "users.apps.UsersConfig",
+    "blogs.apps.BlogsConfig",
+    "api.apps.ApiConfig",
 ]
 
 MIDDLEWARE = [
