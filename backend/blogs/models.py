@@ -75,6 +75,11 @@ class Post(models.Model):
         verbose_name = _("Post")
         verbose_name_plural = _("Posts")
 
+    @classmethod
+    def get_last_posts(cls, count):
+        """Возвращает последние посты."""
+        return cls.objects.all()[:count]
+
     def __str__(self):
         """Возвращает информацию по посту."""
         return f"{self.name} (дата публикации - {self.user})"
