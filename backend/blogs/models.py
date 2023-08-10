@@ -42,6 +42,7 @@ class Post(models.Model):
         _("title"),
         max_length=100,
         default=_("title"),
+        db_index=True,
         help_text=_("Required. Enter name title, please."),
     )
     text = models.CharField(
@@ -70,6 +71,7 @@ class Post(models.Model):
                 ),
             )
         ]
+        ordering = ["-date_create"]
         verbose_name = _("Post")
         verbose_name_plural = _("Posts")
 

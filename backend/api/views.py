@@ -27,6 +27,7 @@ class BlogBaseViewSet(viewsets.GenericViewSet):
 
 class PostViewSet(
     mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
     mixins.CreateModelMixin,
     mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
