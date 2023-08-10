@@ -1,6 +1,8 @@
 from django.urls import path
 from djoser.views import UserViewSet
 
+from api.views import SubscribeViewSet
+
 urlpatterns = [
     path("", UserViewSet.as_view({"post": "create"}), name="users"),
     path(
@@ -17,5 +19,15 @@ urlpatterns = [
         "set_password/",
         UserViewSet.as_view({"post": "set_password"}),
         name="user-set-password",
+    ),
+    path(
+        "subscriptions/",
+        SubscribeViewSet.as_view({"get": "list"}),
+        name="subscriptions",
+    ),
+    path(
+        "<int:id>/subscribe/",
+        SubscribeViewSet.as_view({"post": "create", "delete": "destroy"}),
+        name="subscribe",
     ),
 ]

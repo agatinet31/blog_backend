@@ -4,6 +4,7 @@ from django.core.validators import EmailValidator, MinLengthValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from core.utils import is_exists_user_info
 from users.settings import (
     EMAIL_MAXLENGTH,
     EMAIL_MINLENGTH,
@@ -66,6 +67,16 @@ class User(AbstractUser):
         blank=True,
         upload_to="users",
     )
+    subscribed = models.ManyToManyField(
+        "self",
+        verbose_name=_("subscribed"),
+        blank=True,
+        symmetrical=False,
+        through="Subscriber",
+        through_fields=("user", "author"),
+        related_name="my_subscribers",
+        help_text=_("Subscribed for this user."),
+    )
 
     class Meta(AbstractUser.Meta):
         ordering = ["username"]
@@ -80,6 +91,10 @@ class User(AbstractUser):
     def is_admin(self):
         """Проверка административных прав у пользователя."""
         return self.is_staff or self.is_superuser
+
+    def is_subscribed(self, author):
+        """Проверка наличия подписок на автора."""
+        return is_exists_user_info(self.subscribed, author)
 
     def clean(self):
         """Валидация модели."""
@@ -96,3 +111,55 @@ class User(AbstractUser):
     def __str__(self):
         """Вывод данных пользователя."""
         return f"{self.username} ({self.get_full_name()}), email: {self.email}"
+
+
+class Subscriber(models.Model):
+    """Модель подписчика на авторов."""
+
+    user = models.ForeignKey(
+        User,
+        verbose_name=_("user"),
+        on_delete=models.CASCADE,
+        related_name="user_subscribers",
+    )
+    author = models.ForeignKey(
+        User,
+        verbose_name=_("author"),
+        on_delete=models.CASCADE,
+        related_name="author_subscribers",
+    )
+    date_subscriber = models.DateTimeField(
+        _("date subscriber"), auto_now_add=True, db_index=True
+    )
+
+    class Meta:
+        """Метаданные модели подписчиков."""
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "author"],
+                name="unique_user_author_subscriber",
+                violation_error_message=_(
+                    "Subscription to the author should be unique!"
+                ),
+            ),
+            models.CheckConstraint(
+                check=~models.Q(user_id=models.F("author_id")),
+                name="check_not_loop_user_author",
+                violation_error_message=_(
+                    "The user cannot subscribe to his blog!"
+                ),
+            ),
+        ]
+        ordering = ["-date_subscriber"]
+        verbose_name = _("subscriber")
+        verbose_name_plural = _("subscribers")
+
+    def clean(self):
+        """Валидация модели."""
+        if self.user == self.author:
+            raise ValidationError({"author": _("User cannot follow himself.")})
+
+    def __str__(self):
+        """Вывод подписчика и автора."""
+        return f"{self.user.username}:{self.author.username}"

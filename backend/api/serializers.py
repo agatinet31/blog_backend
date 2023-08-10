@@ -18,6 +18,7 @@ from api.fields import (  # LookupBlogRelatedField,; PrimaryKey404RelatedField,
     CurrentBlogDefault,
 )
 from blogs.models import Blog, Post
+from users.models import Subscriber
 
 User = get_user_model()
 
@@ -99,3 +100,62 @@ class PostSerializer(DefaultBlogDataSerializer):
     class Meta:
         model = Post
         fields = ["id", "title", "text", "blog", "date_create"]
+
+
+class SubscribeParamsSerializer(serializers.Serializer):
+    """Сериализатор query параметров для подписок на пользователей."""
+
+    posts_limit = serializers.IntegerField(required=False, min_value=1)
+
+
+class SubscribeInfoSerializer(CustomUserSerializer):
+    """Сериализатор информации по подпискам пользователей."""
+
+    posts = serializers.SerializerMethodField()
+    count = serializers.SerializerMethodField()
+
+    class Meta(CustomUserSerializer.Meta):
+        fields = CustomUserSerializer.Meta.fields + (
+            "posts",
+            "count",
+        )
+
+    def get_posts(self, user):
+        """Список постов пользователя."""
+        posts_limit = self.context.get("posts_limit")
+        posts = user.blog.posts.all()
+        if posts_limit:
+            posts = posts[:posts_limit]
+        return PostSerializer(
+            instance=posts, many=True, context=self.context
+        ).data
+
+    def get_count(self, user):
+        """Возвращает количество рецептов."""
+        return user.blog.posts.count()
+
+
+class SubscribeSerializer(serializers.ModelSerializer):
+    """Сериализатор создания подписки."""
+
+    class Meta:
+        model = Subscriber
+        fields = "__all__"
+        validators = [
+            serializers.UniqueTogetherValidator(
+                queryset=Subscriber.objects.all(),
+                fields=["user", "author"],
+                message=_("The user is already following the author"),
+            )
+        ]
+
+    def to_representation(self, instance):
+        return SubscribeInfoSerializer(
+            instance=instance.author, context=self.context
+        ).data
+
+    def validate(self, data):
+        """Дополнительная проверка наличия подписки на себя."""
+        if data["user"] == data["author"]:
+            raise serializers.ValidationError(_("User cannot follow himself."))
+        return data
