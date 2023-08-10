@@ -142,3 +142,7 @@ docker-compose exec backend python manage.py collectstatic --no-input
 ```
 python ./backend/manage.py last_posts 5
 ```
+### Документация API доступна по адресу:
+```
+http://127.0.0.1:8000/api/schema/swagger-ui
+```
