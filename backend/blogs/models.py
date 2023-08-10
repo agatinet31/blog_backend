@@ -4,6 +4,8 @@ from django.db.models.functions import Lower
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from core.utils import is_exists_user_info
+
 User = get_user_model()
 
 
@@ -59,6 +61,12 @@ class Post(models.Model):
         related_name=_("posts"),
         verbose_name=_("blog"),
     )
+    acquainted = models.ManyToManyField(
+        User,
+        verbose_name=_("acquainted"),
+        blank=True,
+        related_name="read_posts",
+    )
 
     class Meta:
         constraints = [
@@ -79,6 +87,10 @@ class Post(models.Model):
     def get_last_posts(cls, count):
         """Возвращает последние посты."""
         return cls.objects.all()[:count]
+
+    def is_read(self, user):
+        """Проверка прочтения поста пользователем."""
+        return is_exists_user_info(self.acquainted, user)
 
     def __str__(self):
         """Возвращает информацию по посту."""

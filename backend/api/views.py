@@ -10,6 +10,7 @@ from rest_framework import mixins, viewsets
 
 from api.permissions import IsAuthorBlog
 from api.serializers import (
+    AcquaintedSerializer,
     PostSerializer,
     SubscribeParamsSerializer,
     SubscribeSerializer,
@@ -88,4 +89,19 @@ class NewsViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
             Post.objects.select_related("blog")
             .filter(blog__user__in=subscribed)
             .order_by("date_create")
+        )
+
+
+class AcquaintedViewSet(mixins.CreateModelMixin, UserDataViewSet):
+    """Отметка прочитаных постов."""
+
+    serializer_class = AcquaintedSerializer
+    user_field = "user"
+    obj_field = "post"
+    obj_model = Post
+
+    def get_queryset(self):
+        """Возвращает данные по прочтению поста пользователем."""
+        return Post.acquainted.through.objects.filter(
+            user_id=self.request.user.pk
         )

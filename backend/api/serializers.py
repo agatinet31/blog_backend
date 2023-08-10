@@ -96,10 +96,16 @@ class PostSerializer(DefaultBlogDataSerializer):
 
     id = serializers.ReadOnlyField()
     date_create = serializers.ReadOnlyField()
+    is_read = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
-        fields = ["id", "title", "text", "blog", "date_create"]
+        fields = ["id", "title", "text", "blog", "date_create", "is_read"]
+
+    def get_is_read(self, post):
+        """Флаг прочтения поста пользователем."""
+        user = self.context.get("request").user
+        return post.is_read(user)
 
 
 class SubscribeParamsSerializer(serializers.Serializer):
@@ -159,3 +165,23 @@ class SubscribeSerializer(serializers.ModelSerializer):
         if data["user"] == data["author"]:
             raise serializers.ValidationError(_("User cannot follow himself."))
         return data
+
+
+class AcquaintedSerializer(serializers.ModelSerializer):
+    """Сериализатор прочитанных постов."""
+
+    class Meta:
+        model = Post.acquainted.through
+        fields = "__all__"
+        validators = [
+            serializers.UniqueTogetherValidator(
+                queryset=Post.acquainted.through.objects.all(),
+                fields=["user", "post"],
+                message=_("Post already is readed"),
+            )
+        ]
+
+    def to_representation(self, instance):
+        return PostSerializer(
+            instance=instance.post, context=self.context
+        ).data
