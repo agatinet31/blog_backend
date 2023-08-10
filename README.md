@@ -37,18 +37,44 @@
     poetry shell
     poetry install
     ```
-3. Сделайте миграции
-    ```
-    python manage.py migrate
-    ```
-4. Установите pre-commit хуки
+3. Установите pre-commit хуки
     ```
     pre-commit install --all
     ```
-5. Убедитесь, что при запуске используется правильное виртуальное окружение.
+4. Убедитесь, что при запуске используется правильное виртуальное окружение.
 Посмотреть путь можно следующей командой:
     ```
     poetry env info --path
+    ```
+5. Создать базу данных PostgreSQL:
+    ```
+    DB_NAME=blogs
+    ```
+6. Создать файл .env с переменными окружения для работы с базой данных PostgreSQL:
+
+    ```
+    # Доменное имя
+    PRODUCTION_HOSTS=example.org
+    # Указываем, что работаем с postgresql
+    DB_ENGINE=django.db.backends.postgresql
+    # Имя базы данных
+    DB_NAME=blogs
+    # Логин для подключения к базе данных
+    POSTGRES_USER=postgres
+    # Пароль для подключения к БД (установите свой)
+    POSTGRES_PASSWORD=postgres
+    # Название сервиса (контейнера)
+    DB_HOST=db (localhost для локального подключения к БД)
+    # Порт для подключения к БД
+    DB_PORT=5432
+    ```
+7. Применить миграции
+    ```
+    python manage.py migrate
+    ```
+8. Запуск проекта с настройками develop:
+    ```
+    python ./backend/manage.py runserver --settings=config.settings.develop
     ```
 
 ### Создание Docker контейнеров:
@@ -110,4 +136,9 @@ docker-compose exec backend python manage.py createsuperuser
 
 ```
 docker-compose exec backend python manage.py collectstatic --no-input
+```
+### Получение информации по крайним постам:
+Например для формирования 5 постов необходимо выполнить команду:
+```
+python ./backend/manage.py last_posts 5
 ```

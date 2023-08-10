@@ -94,4 +94,4 @@ class Post(models.Model):
 
     def __str__(self):
         """Возвращает информацию по посту."""
-        return f"{self.name} (дата публикации - {self.user})"
+        return f"{self.title} (дата публикации - {self.date_create})"
