@@ -131,7 +131,7 @@ class SubscribeInfoSerializer(CustomUserSerializer):
         ).data
 
     def get_count(self, user):
-        """Возвращает количество рецептов."""
+        """Возвращает количество постов."""
         return user.blog.posts.count()
 
 

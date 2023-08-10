@@ -71,3 +71,21 @@ class SubscribeViewSet(
     def get_queryset(self):
         """Возвращает выборку данных по подпискам для текущего пользователя."""
         return Subscriber.objects.filter(user=self.request.user)
+
+
+class NewsViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    """Новостная лента пользователя."""
+
+    serializer_class = PostSerializer
+
+    def get_queryset(self):
+        """Возвращает выборку данных по подпискам для текущего пользователя."""
+        user = self.request.user
+        subscribed = User.subscribed.through.objects.filter(user=user).values(
+            "author"
+        )
+        return (
+            Post.objects.select_related("blog")
+            .filter(blog__user__in=subscribed)
+            .order_by("date_create")
+        )
